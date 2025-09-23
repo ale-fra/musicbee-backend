@@ -1,0 +1,33 @@
+{
+  "cards": {
+    "96DE9A41": {
+      "type": "track",
+      "title": "carlita gabby's dollhouse",
+      "source": "/media/carlita-gabbys-dollhouse.mp3",
+      "createdAt": "2025-09-22T22:10:31.248Z",
+      "updatedAt": "2025-09-23T13:25:02.474Z",
+      "usage": {
+        "scanCount": 25,
+        "playCount": 8,
+        "lastScannedAt": "2025-09-23T13:25:02.474Z",
+        "lastPlayedAt": "2025-09-23T08:31:38.182Z"
+      }
+    },
+    "D6DF9A41": {
+      "type": "track",
+      "title": "test song",
+      "source": "/media/test-song.mp3",
+      "createdAt": "2025-09-23T08:32:09.687Z",
+      "updatedAt": "2025-09-23T13:11:18.224Z",
+      "usage": {
+        "scanCount": 3,
+        "playCount": 1,
+        "lastScannedAt": "2025-09-23T13:11:18.224Z",
+        "lastPlayedAt": "2025-09-23T08:32:18.393Z"
+      }
+    }
+  },
+  "player": {
+    "volume": 0.5
+  }
+}
