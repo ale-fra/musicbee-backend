@@ -47,10 +47,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static files
-app.use("/media", express.static(path.join(__dirname, "media"), { 
+app.use("/media", express.static(path.join(__dirname, "media"), {
   fallthrough: true,
   setHeaders: (res, path) => {
-    res.set('Content-Type', 'audio/mpeg');
+    res.type(path);
     res.set('Accept-Ranges', 'bytes');
     res.set('Access-Control-Allow-Origin', '*');
   }
