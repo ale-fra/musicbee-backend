@@ -79,12 +79,15 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, "::", () => {
+app.listen(PORT, HOST, () => {
   const localIP = getLocalIP();
-  
+
   console.log(`🎵 MusicBee Backend started:`);
+  console.log(`   Host Bind: ${HOST}:${PORT}`);
   console.log(`   Local:     http://localhost:${PORT}`);
-  console.log(`   Network:   http://${localIP}:${PORT}`);
+  if (localIP) {
+    console.log(`   Network:   http://${localIP}:${PORT}`);
+  }
   
   // Start mDNS
   // startMDNS({ port: PORT, hostname: SERVICE_NAME })
