@@ -60,8 +60,8 @@ app.use("/media", express.static(path.join(__dirname, "media"), {
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-app.use("/api/v1/cards", uploadRoutes);
 app.use("/api/v1/cards", cardsRoutes);
+app.use("/api/v1/cards", uploadRoutes);
 app.use("/api/v1/player", playerRoutes);
 app.use("/api/v1", systemRoutes);
 
