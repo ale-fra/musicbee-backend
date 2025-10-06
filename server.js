@@ -64,8 +64,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/v1/cards", cardsRoutes);
 app.use("/api/v1/cards", uploadRoutes);
 app.use("/api/v1/player", playerRoutes);
+app.use("/api/v1/firmware", firmwareRoutes);
 app.use("/api/v1", systemRoutes);
-app.use("/firmware", firmwareRoutes);
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ ok: false, error: "NOT_FOUND" }));
