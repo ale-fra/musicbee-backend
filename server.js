@@ -14,6 +14,7 @@ import uploadRoutes from './routes/upload.js';
 import playerRoutes from './routes/player.js';
 import cardsRoutes from './routes/cards.js';
 import systemRoutes from './routes/system.js';
+import firmwareRoutes from './routes/firmware.js';
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ app.use("/api/v1/cards", cardsRoutes);
 app.use("/api/v1/cards", uploadRoutes);
 app.use("/api/v1/player", playerRoutes);
 app.use("/api/v1", systemRoutes);
+app.use("/firmware", firmwareRoutes);
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ ok: false, error: "NOT_FOUND" }));
