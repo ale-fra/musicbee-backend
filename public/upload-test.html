@@ -135,6 +135,12 @@
             color: #155724;
         }
 
+        .result.info {
+            background: #cce5ff;
+            border: 1px solid #b8daff;
+            color: #004085;
+        }
+
         .result.error {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
@@ -171,9 +177,26 @@
             font-size: 14px;
         }
 
+        .card-meta {
+            margin-bottom: 4px;
+        }
+
         .card-actions {
             display: flex;
             gap: 10px;
+        }
+
+        .file-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .file-path {
+            word-break: break-all;
         }
 
         .btn-small {
@@ -195,9 +218,21 @@
             color: white;
         }
 
+        .btn-assign {
+            background: #007bff;
+            color: white;
+        }
+
         .btn-small:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-small:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .loading {
@@ -361,6 +396,12 @@
             border-radius: 4px;
         }
 
+        .input-highlight {
+            border-color: #4ECDC4 !important;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.3) !important;
+            transition: box-shadow 0.3s ease;
+        }
+
         .card-unknown {
             border-left-color: #ffc107 !important;
             background: #fff8e1;
@@ -497,6 +538,76 @@
             }, 5000);
         }
 
+        function sortCardsByLastScan(cards) {
+            return Object.entries(cards).sort(([, cardA], [, cardB]) => {
+                const usageA = cardA.usage || {};
+                const usageB = cardB.usage || {};
+                const lastScanA = usageA.lastScannedAt ? new Date(usageA.lastScannedAt).getTime() : (cardA.updatedAt ? new Date(cardA.updatedAt).getTime() : 0);
+                const lastScanB = usageB.lastScannedAt ? new Date(usageB.lastScannedAt).getTime() : (cardB.updatedAt ? new Date(cardB.updatedAt).getTime() : 0);
+                return lastScanB - lastScanA;
+            });
+        }
+
+        function escapeAttribute(value) {
+            return String(value).replace(/'/g, "\\'");
+        }
+
+        function createCardItem(cardId, card) {
+            const usage = card.usage || {};
+            const scanCount = usage.scanCount || 0;
+            const playCount = usage.playCount || 0;
+            const isUnknown = card.type === 'unknown';
+            const hasSource = Boolean(card.source);
+            const safeCardId = escapeAttribute(cardId);
+
+            const fileSectionContent = hasSource
+                ? `<span class="file-path">${card.source}</span>`
+                : `<button class="btn-small btn-assign" onclick="assignFile('${safeCardId}')">📎 Assegna File</button>`;
+
+            const playAction = hasSource ? `playCard('${safeCardId}')` : 'return false;';
+            const playButton = !isUnknown
+                ? `<button class="btn-small btn-play" ${hasSource ? '' : 'disabled'} onclick="${playAction}">▶️ Play</button>`
+                : '';
+
+            return `
+                <div class="card-item ${isUnknown ? 'card-unknown' : ''}">
+                    <div class="card-info">
+                        <h3>${card.title} ${isUnknown ? '⚠️' : ''}</h3>
+                        <p class="card-meta">ID: ${cardId} | Tipo: ${card.type}</p>
+                        <div class="file-section">File: ${fileSectionContent}</div>
+                        <div class="usage-stats">
+                            <span>🔍 ${scanCount} scan</span>
+                            <span>▶️ ${playCount} play</span>
+                            ${usage.lastScannedAt ? `<span>📅 ${formatTimestamp(usage.lastScannedAt)}</span>` : ''}
+                            ${usage.lastPlayedAt ? `<span>🕐 ${formatTimestamp(usage.lastPlayedAt)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        ${playButton}
+                        <button class="btn-small btn-delete" onclick="deleteCard('${safeCardId}')">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function assignFile(cardId) {
+            const cardIdInput = document.getElementById('cardId');
+            cardIdInput.value = cardId;
+            cardIdInput.focus();
+            cardIdInput.classList.add('input-highlight');
+
+            setTimeout(() => {
+                cardIdInput.classList.remove('input-highlight');
+            }, 1500);
+
+            const uploadSection = document.querySelector('.upload-section');
+            if (uploadSection) {
+                uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            showResult(`Carta ${cardId} pronta per l'assegnazione di un file. Seleziona un file e premi Carica.`, 'info');
+        }
+
         // Load cards list
         async function loadCards() {
             const cardsList = document.getElementById('cardsList');
@@ -508,30 +619,19 @@
 
                 if (data.ok && data.config.cards) {
                     const cards = data.config.cards;
-                    const cardsArray = Object.entries(cards);
+                    const cardsArray = sortCardsByLastScan(cards);
 
                     if (cardsArray.length === 0) {
                         cardsList.innerHTML = '<p style="text-align: center; color: #666;">Nessuna carta configurata</p>';
                         return;
                     }
 
-                    cardsList.innerHTML = cardsArray.map(([cardId, card]) => `
-                        <div class="card-item">
-                            <div class="card-info">
-                                <h3>${card.title}</h3>
-                                <p>ID: ${cardId} | Tipo: ${card.type} | File: ${card.source}</p>
-                            </div>
-                            <div class="card-actions">
-                                <button class="btn-small btn-play" onclick="playCard('${cardId}')">▶️ Play</button>
-                                <button class="btn-small btn-delete" onclick="deleteCard('${cardId}')">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    `).join('');
+                    cardsList.innerHTML = cardsArray.map(([cardId, card]) => createCardItem(cardId, card)).join('');
                 } else {
                     cardsList.innerHTML = '<p style="text-align: center; color: #666;">Errore nel caricamento delle carte</p>';
                 }
             } catch (error) {
-                cardsList.innerHTML = '<p style="text-align: center; color: #red;">Errore di connessione</p>';
+                cardsList.innerHTML = '<p style="text-align: center; color: red;">Errore di connessione</p>';
                 console.error('Error loading cards:', error);
             }
         }
@@ -679,35 +779,14 @@
 
                     if (data.ok && data.config.cards) {
                         const cards = data.config.cards;
-                        const cardsArray = Object.entries(cards);
+                        const cardsArray = sortCardsByLastScan(cards);
 
                         if (cardsArray.length === 0) {
                             cardsList.innerHTML = '<p style="text-align: center; color: #666;">Nessuna carta configurata</p>';
                             return;
                         }
 
-                        cardsList.innerHTML = cardsArray.map(([cardId, card]) => {
-                            const usage = card.usage || { scanCount: 0, playCount: 0 };
-                            const isUnknown = card.type === 'unknown';
-
-                            return `
-                        <div class="card-item ${isUnknown ? 'card-unknown' : ''}">
-                            <div class="card-info">
-                                <h3>${card.title} ${isUnknown ? '⚠️' : ''}</h3>
-                                <p>ID: ${cardId} | Tipo: ${card.type} | File: ${card.source || 'N/A'}</p>
-                                <div class="usage-stats">
-                                    <span>🔍 ${usage.scanCount} scan</span>
-                                    <span>▶️ ${usage.playCount} play</span>
-                                    ${usage.lastPlayedAt ? `<span>🕐 ${formatTimestamp(usage.lastPlayedAt)}</span>` : ''}
-                                </div>
-                            </div>
-                            <div class="card-actions">
-                                ${!isUnknown ? `<button class="btn-small btn-play" onclick="playCard('${cardId}')">▶️ Play</button>` : ''}
-                                <button class="btn-small btn-delete" onclick="deleteCard('${cardId}')">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    `;
-                        }).join('');
+                        cardsList.innerHTML = cardsArray.map(([cardId, card]) => createCardItem(cardId, card)).join('');
                     } else {
                         cardsList.innerHTML = '<p style="text-align: center; color: #666;">Errore nel caricamento delle carte</p>';
                     }
