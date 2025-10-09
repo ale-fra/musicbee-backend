@@ -445,7 +445,7 @@
             await loadCards();
             await loadStatistics();
           } else {
-            throw new Error(result.message || 'Errore durante l'eliminazione');
+            throw new Error(result.message || 'Errore durante l\'eliminazione');
           }
         } catch (error) {
           setToast({ type: 'error', message: `Errore: ${error.message}` });
