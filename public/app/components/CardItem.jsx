@@ -1,6 +1,9 @@
-import { formatNumberCompact } from '../utils/format.js';
+window.MusicBee = window.MusicBee || {};
+window.MusicBee.components = window.MusicBee.components || {};
 
-export function CardItem({ card, onPlay, onDelete, onAssign, formatRelative }) {
+const { formatNumber, formatRelative } = window.MusicBee.utils;
+
+const CardItem = ({ card, onPlay, onDelete, onAssign }) => {
   const usage = card.usage || {};
   const scanCount = usage.scanCount || 0;
   const playCount = usage.playCount || 0;
@@ -33,11 +36,11 @@ export function CardItem({ card, onPlay, onDelete, onAssign, formatRelative }) {
       <dl className="grid grid-cols-2 gap-3 text-sm text-slate-300">
         <div className="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-3">
           <dt className="text-xs uppercase tracking-wide text-slate-500">Scan</dt>
-          <dd className="mt-1 text-slate-100">{formatNumberCompact(scanCount)}</dd>
+          <dd className="mt-1 text-slate-100">{formatNumber(scanCount)}</dd>
         </div>
         <div className="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-3">
           <dt className="text-xs uppercase tracking-wide text-slate-500">Riproduzioni</dt>
-          <dd className="mt-1 text-slate-100">{formatNumberCompact(playCount)}</dd>
+          <dd className="mt-1 text-slate-100">{formatNumber(playCount)}</dd>
         </div>
         <div className="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-3 col-span-2">
           <dt className="text-xs uppercase tracking-wide text-slate-500">Ultimo scan</dt>
@@ -75,6 +78,6 @@ export function CardItem({ card, onPlay, onDelete, onAssign, formatRelative }) {
       </div>
     </article>
   );
-}
+};
 
-export default CardItem;
+window.MusicBee.components.CardItem = CardItem;

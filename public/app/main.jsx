@@ -1,11 +1,7 @@
-import App from './App.jsx';
+window.MusicBee = window.MusicBee || {};
 
-const { createRoot } = ReactDOM;
-const container = document.getElementById('root');
-const root = createRoot(container);
+const { App } = window.MusicBee;
 
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const rootElement = document.getElementById('root');
+const root = ReactDOM.createRoot(rootElement);
+root.render(<App />);

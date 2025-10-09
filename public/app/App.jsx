@@ -1,103 +1,72 @@
-import { Toast } from './components/Toast.jsx';
-import { StatCard } from './components/StatCard.jsx';
-import { ProgressBar } from './components/ProgressBar.jsx';
-import { ActivityItem } from './components/ActivityItem.jsx';
-import { CardItem } from './components/CardItem.jsx';
-import { useToast } from './hooks/useToast.js';
-import { statusBadgeClasses as statusBadgeVariants } from './constants/ui.js';
-import { API_BASE as API_BASE_URL } from './config.js';
-import {
-  formatRelativeTime,
-  formatAbsoluteDate,
-  formatNumberCompact
-} from './utils/format.js';
-import {
-  fetchCardsConfig,
-  fetchCardStatistics,
-  fetchPlayerStatus,
-  playCardById,
-  deleteCardById,
-  uploadCardMedia
-} from './services/api.js';
+window.MusicBee = window.MusicBee || {};
 
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const { constants, hooks, components, services, utils } = window.MusicBee;
+const { API_BASE, statusBadgeClasses } = constants;
+const { useToast } = hooks;
+const { Toast, StatCard, ProgressBar, ActivityItem, CardItem } = components;
+const { formatAbsolute, formatNumber, formatRelative, sortCardsByLastScan } = utils;
 const {
-  useState: useReactState,
-  useEffect: useReactEffect,
-  useMemo: useReactMemo,
-  useCallback: useReactCallback,
-  useRef: useReactRef
-} = React;
+  fetchCardsConfig,
+  fetchCardsStatistics,
+  fetchPlayerStatus,
+  playCard,
+  deleteCard,
+  uploadCard
+} = services;
 
-const createInitialPlayerState = () => ({
-  badge: 'offline',
-  badgeLabel: 'In attesa',
-  state: '-',
-  title: 'Stato non disponibile',
-  volume: '-',
-  startedAt: '-',
-  source: '-',
-  lastUpdated: null
-});
+const App = () => {
+  const [cards, setCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
+  const [cardsError, setCardsError] = useState(null);
 
-const sortCardsByLastScan = (cardsMap) => {
-  return Object.entries(cardsMap || {})
-    .map(([cardId, card]) => ({ ...card, cardId }))
-    .sort((a, b) => {
-      const usageA = a.usage || {};
-      const usageB = b.usage || {};
-      const lastScanA = usageA.lastScannedAt
-        ? new Date(usageA.lastScannedAt).getTime()
-        : (a.updatedAt ? new Date(a.updatedAt).getTime() : 0);
-      const lastScanB = usageB.lastScannedAt
-        ? new Date(usageB.lastScannedAt).getTime()
-        : (b.updatedAt ? new Date(b.updatedAt).getTime() : 0);
-      return lastScanB - lastScanA;
-    });
-};
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState(null);
+  const [activity, setActivity] = useState([]);
 
-export default function App() {
+  const [player, setPlayer] = useState({
+    badge: 'offline',
+    badgeLabel: 'In attesa',
+    state: '-',
+    title: 'Stato non disponibile',
+    volume: '-',
+    startedAt: '-',
+    source: '-',
+    lastUpdated: null
+  });
+  const [playerLoading, setPlayerLoading] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+
   const { toast, showToast, hideToast } = useToast();
 
-  const [cards, setCards] = useReactState([]);
-  const [cardsLoading, setCardsLoading] = useReactState(true);
-  const [cardsError, setCardsError] = useReactState(null);
+  const [formCardId, setFormCardId] = useState('');
+  const [formTitle, setFormTitle] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [highlightCardId, setHighlightCardId] = useState(false);
 
-  const [stats, setStats] = useReactState(null);
-  const [statsLoading, setStatsLoading] = useReactState(true);
-  const [statsError, setStatsError] = useReactState(null);
-  const [activity, setActivity] = useReactState([]);
+  const uploadFormRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cardIdInputRef = useRef(null);
+  const uploadSectionRef = useRef(null);
+  const highlightTimeoutRef = useRef(null);
 
-  const [player, setPlayer] = useReactState(createInitialPlayerState);
-  const [playerLoading, setPlayerLoading] = useReactState(true);
-
-  const [searchTerm, setSearchTerm] = useReactState('');
-  const [isRefreshing, setIsRefreshing] = useReactState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useReactState(null);
-
-  const [formCardId, setFormCardId] = useReactState('');
-  const [formTitle, setFormTitle] = useReactState('');
-  const [uploading, setUploading] = useReactState(false);
-  const [highlightCardId, setHighlightCardId] = useReactState(false);
-
-  const uploadFormRef = useReactRef(null);
-  const fileInputRef = useReactRef(null);
-  const cardIdInputRef = useReactRef(null);
-  const uploadSectionRef = useReactRef(null);
-  const highlightTimeoutRef = useReactRef(null);
-
-  useReactEffect(() => () => {
+  useEffect(() => () => {
     if (highlightTimeoutRef.current) {
       clearTimeout(highlightTimeoutRef.current);
     }
   }, []);
 
-  const loadCards = useReactCallback(async () => {
+  const loadCards = useCallback(async () => {
     setCardsLoading(true);
     setCardsError(null);
     try {
       const cardsMap = await fetchCardsConfig();
-      const sortedCards = sortCardsByLastScan(cardsMap);
-      setCards(sortedCards);
+      const sorted = sortCardsByLastScan(cardsMap);
+      setCards(sorted);
     } catch (error) {
       setCards([]);
       setCardsError(error.message || 'Impossibile caricare le carte');
@@ -106,28 +75,28 @@ export default function App() {
     }
   }, []);
 
-  const loadStatistics = useReactCallback(async () => {
+  const loadStatistics = useCallback(async () => {
     setStatsLoading(true);
     setStatsError(null);
     try {
-      const { statistics, activity: recentActivity } = await fetchCardStatistics();
+      const statistics = await fetchCardsStatistics();
       const totalCards = statistics.totalCards || 0;
-      const configuredCards = statistics.configuredCards || 0;
-      const unknownCards = statistics.unknownCards || 0;
-      const configuredPercent = totalCards > 0 ? Math.round((configuredCards / totalCards) * 100) : 0;
-      const unknownPercent = totalCards > 0 ? Math.round((unknownCards / totalCards) * 100) : 0;
+      const configured = statistics.configuredCards || 0;
+      const unknown = statistics.unknownCards || 0;
+      const configuredPercent = totalCards > 0 ? Math.round((configured / totalCards) * 100) : 0;
+      const unknownPercent = totalCards > 0 ? Math.round((unknown / totalCards) * 100) : 0;
 
       setStats({
         totalCards,
-        configuredCards,
-        unknownCards,
+        configuredCards: configured,
+        unknownCards: unknown,
         totalScans: statistics.totalScans || 0,
         totalPlays: statistics.totalPlays || 0,
         configuredPercent,
         unknownPercent,
         mostUsedCard: statistics.mostUsedCard || null
       });
-      setActivity(recentActivity);
+      setActivity(statistics.recentActivity || []);
     } catch (error) {
       setStats(null);
       setActivity([]);
@@ -137,7 +106,7 @@ export default function App() {
     }
   }, []);
 
-  const loadPlayerStatus = useReactCallback(async () => {
+  const loadPlayerStatus = useCallback(async () => {
     setPlayerLoading(true);
     try {
       const status = await fetchPlayerStatus();
@@ -152,35 +121,40 @@ export default function App() {
         state: playerState,
         title: status.title || 'Nessuna traccia in riproduzione',
         volume: typeof status.volume === 'number' ? `${Math.round(status.volume * 100)}%` : '-',
-        startedAt: status.startedAt ? formatRelativeTime(status.startedAt) : '-',
+        startedAt: status.startedAt ? formatRelative(status.startedAt) : '-',
         source: status.src || '-',
         lastUpdated: new Date()
       });
     } catch (error) {
       setPlayer({
-        ...createInitialPlayerState(),
+        badge: 'offline',
         badgeLabel: 'Errore',
-        source: error.message || 'Stato non disponibile'
+        state: '-',
+        title: 'Stato non disponibile',
+        volume: '-',
+        startedAt: '-',
+        source: error.message || 'Stato non disponibile',
+        lastUpdated: null
       });
     } finally {
       setPlayerLoading(false);
     }
   }, []);
 
-  const refreshDashboard = useReactCallback(async () => {
+  const refreshDashboard = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.all([loadCards(), loadStatistics(), loadPlayerStatus()]);
     setIsRefreshing(false);
     setLastUpdatedAt(new Date());
   }, [loadCards, loadStatistics, loadPlayerStatus]);
 
-  useReactEffect(() => {
+  useEffect(() => {
     refreshDashboard();
     const interval = setInterval(refreshDashboard, 30000);
     return () => clearInterval(interval);
   }, [refreshDashboard]);
 
-  const filteredCards = useReactMemo(() => {
+  const filteredCards = useMemo(() => {
     const normalized = searchTerm.trim().toLowerCase();
     if (!normalized) return cards;
     return cards.filter((card) =>
@@ -188,31 +162,32 @@ export default function App() {
     );
   }, [cards, searchTerm]);
 
-  const handlePlay = useReactCallback(async (cardId) => {
+  const handlePlay = async (cardId) => {
     try {
-      const played = await playCardById(cardId);
-      showToast({ type: 'success', message: `Riproduzione avviata: ${played.title || cardId}` });
+      const result = await playCard(cardId);
+      const playedTitle = result.played?.title || cardId;
+      showToast({ type: 'success', message: `Riproduzione avviata: ${playedTitle}` });
       loadPlayerStatus();
     } catch (error) {
       showToast({ type: 'error', message: `Errore: ${error.message}` });
     }
-  }, [loadPlayerStatus, showToast]);
+  };
 
-  const handleDelete = useReactCallback(async (cardId) => {
+  const handleDelete = async (cardId) => {
     if (!window.confirm(`Sei sicuro di voler eliminare la carta ${cardId}?`)) {
       return;
     }
     try {
-      await deleteCardById(cardId);
+      await deleteCard(cardId);
       showToast({ type: 'success', message: `Carta ${cardId} eliminata.` });
       await loadCards();
       await loadStatistics();
     } catch (error) {
       showToast({ type: 'error', message: `Errore: ${error.message}` });
     }
-  }, [loadCards, loadStatistics, showToast]);
+  };
 
-  const handleAssign = useReactCallback((cardId) => {
+  const handleAssign = (cardId) => {
     setFormCardId(cardId);
     setHighlightCardId(true);
     showToast({ type: 'info', message: `Carta ${cardId} pronta per l'assegnazione. Seleziona il file audio e premi "Carica e configura".` });
@@ -228,24 +203,23 @@ export default function App() {
       clearTimeout(highlightTimeoutRef.current);
     }
     highlightTimeoutRef.current = setTimeout(() => setHighlightCardId(false), 1600);
-  }, [showToast]);
+  };
 
-  const handleUpload = useReactCallback(async (event) => {
+  const handleUpload = async (event) => {
     event.preventDefault();
     const audioFile = fileInputRef.current?.files?.[0];
-    if (!formCardId.trim() || !formTitle.trim() || !audioFile) {
+    const trimmedCardId = formCardId.trim();
+    const trimmedTitle = formTitle.trim();
+
+    if (!trimmedCardId || !trimmedTitle || !audioFile) {
       showToast({ type: 'error', message: 'Compila tutti i campi prima di procedere.' });
       return;
     }
 
     setUploading(true);
     try {
-      await uploadCardMedia({
-        cardId: formCardId.trim(),
-        title: formTitle.trim(),
-        file: audioFile
-      });
-      showToast({ type: 'success', message: `Carta ${formCardId.trim()} configurata con successo!` });
+      await uploadCard({ cardId: trimmedCardId, title: trimmedTitle, file: audioFile });
+      showToast({ type: 'success', message: `Carta ${trimmedCardId} configurata con successo!` });
       setFormCardId('');
       setFormTitle('');
       if (fileInputRef.current) {
@@ -259,7 +233,7 @@ export default function App() {
     } finally {
       setUploading(false);
     }
-  }, [formCardId, formTitle, loadCards, loadStatistics, showToast]);
+  };
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#1e293b,_#0f172a_35%,_#020617_100%)]">
@@ -286,7 +260,7 @@ export default function App() {
           </nav>
           <div className="mt-auto space-y-3 text-sm text-slate-400/80">
             <p className="font-semibold text-slate-300">API attiva</p>
-            <p className="break-all rounded-2xl border border-slate-800/60 bg-slate-900/50 p-3 text-xs text-slate-400">{API_BASE_URL}</p>
+            <p className="break-all rounded-2xl border border-slate-800/60 bg-slate-900/50 p-3 text-xs text-slate-400">{API_BASE}</p>
             <p className="text-xs text-slate-500">Sincronizzazione automatica ogni 30s.</p>
           </div>
         </aside>
@@ -315,25 +289,25 @@ export default function App() {
           <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
               label="Carte totali"
-              value={statsLoading ? '—' : formatNumberCompact(stats?.totalCards)}
+              value={statsLoading ? '—' : formatNumber(stats?.totalCards)}
               hint={statsError ? 'Statistiche non disponibili' : 'Include carte configurate e in attesa'}
             />
             <StatCard
               label="Carte configurate"
-              value={statsLoading ? '—' : formatNumberCompact(stats?.configuredCards)}
+              value={statsLoading ? '—' : formatNumber(stats?.configuredCards)}
               hint={statsLoading ? '' : `${stats?.configuredPercent || 0}% del totale`}
               accent="text-emerald-300"
             />
             <StatCard
               label="Carte da configurare"
-              value={statsLoading ? '—' : formatNumberCompact(stats?.unknownCards)}
+              value={statsLoading ? '—' : formatNumber(stats?.unknownCards)}
               hint={statsLoading ? '' : `${stats?.unknownPercent || 0}% del totale`}
               accent="text-amber-300"
             />
             <StatCard
               label="Interazioni rilevate"
-              value={statsLoading ? '—' : formatNumberCompact((stats?.totalScans || 0) + (stats?.totalPlays || 0))}
-              hint={statsLoading ? '' : `${formatNumberCompact(stats?.totalScans)} scan • ${formatNumberCompact(stats?.totalPlays)} play`}
+              value={statsLoading ? '—' : formatNumber((stats?.totalScans || 0) + (stats?.totalPlays || 0))}
+              hint={statsLoading ? '' : `${formatNumber(stats?.totalScans)} scan • ${formatNumber(stats?.totalPlays)} play`}
               accent="text-sky-300"
             />
           </section>
@@ -441,7 +415,6 @@ export default function App() {
                           onPlay={handlePlay}
                           onDelete={handleDelete}
                           onAssign={handleAssign}
-                          formatRelative={formatRelativeTime}
                         />
                       ))}
                     </div>
@@ -457,7 +430,7 @@ export default function App() {
                     <h2 className="text-xl font-semibold text-slate-100">Stato player Cast</h2>
                     <p className="mt-1 text-sm text-slate-400">Monitora la connessione e i dettagli dell'ultimo contenuto.</p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${statusBadgeVariants[player.badge]}`}>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${statusBadgeClasses[player.badge] || statusBadgeClasses.offline}`}>
                     {player.badgeLabel}
                   </span>
                 </div>
@@ -486,7 +459,7 @@ export default function App() {
                   </div>
                 </div>
                 <p className="mt-6 text-xs text-slate-500">
-                  Ultimo aggiornamento: {player.lastUpdated ? formatAbsoluteDate(player.lastUpdated) : '--'}
+                  Ultimo aggiornamento: {player.lastUpdated ? formatAbsolute(player.lastUpdated) : '--'}
                 </p>
               </div>
 
@@ -501,7 +474,7 @@ export default function App() {
                   ) : (
                     <ul className="space-y-3">
                       {activity.map((item, index) => (
-                        <ActivityItem key={`${item.cardId}-${index}`} item={item} formatRelative={formatRelativeTime} />
+                        <ActivityItem key={`${item.cardId}-${index}`} item={item} />
                       ))}
                     </ul>
                   )}
@@ -514,13 +487,13 @@ export default function App() {
                 <div className="mt-6 space-y-5">
                   <ProgressBar
                     label="Carte configurate"
-                    value={statsLoading ? '--' : `${formatNumberCompact(stats?.configuredCards)} (${stats?.configuredPercent || 0}%)`}
+                    value={statsLoading ? '--' : `${formatNumber(stats?.configuredCards)} (${stats?.configuredPercent || 0}%)`}
                     percent={stats?.configuredPercent || 0}
                     gradient="linear-gradient(135deg, rgba(34,197,94,0.85), rgba(56,189,248,0.85))"
                   />
                   <ProgressBar
                     label="Carte da configurare"
-                    value={statsLoading ? '--' : `${formatNumberCompact(stats?.unknownCards)} (${stats?.unknownPercent || 0}%)`}
+                    value={statsLoading ? '--' : `${formatNumber(stats?.unknownCards)} (${stats?.unknownPercent || 0}%)`}
                     percent={stats?.unknownPercent || 0}
                     gradient="linear-gradient(135deg, rgba(245,158,11,0.85), rgba(248,113,113,0.85))"
                   />
@@ -531,7 +504,7 @@ export default function App() {
                     </p>
                     <p className="mt-1 text-xs text-slate-400">
                       {stats?.mostUsedCard
-                        ? `ID ${stats.mostUsedCard.cardId} • ${formatNumberCompact(stats.mostUsedCard.scanCount || 0)} scan • ${formatNumberCompact(stats.mostUsedCard.playCount || 0)} play`
+                        ? `ID ${stats.mostUsedCard.cardId} • ${formatNumber(stats.mostUsedCard.scanCount || 0)} scan • ${formatNumber(stats.mostUsedCard.playCount || 0)} play`
                         : 'Nessun dato disponibile.'}
                     </p>
                   </div>
@@ -543,4 +516,6 @@ export default function App() {
       </div>
     </div>
   );
-}
+};
+
+window.MusicBee.App = App;

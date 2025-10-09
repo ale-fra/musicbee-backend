@@ -1,13 +1,14 @@
-import { toastStyles as toastVariantStyles } from '../constants/ui.js';
+window.MusicBee = window.MusicBee || {};
+window.MusicBee.components = window.MusicBee.components || {};
 
-export function Toast({ toast, onClose }) {
+const { toastStyles } = window.MusicBee.constants;
+
+const Toast = ({ toast, onClose }) => {
   if (!toast) return null;
-
-  const style = toastVariantStyles[toast.type] || toastVariantStyles.info;
 
   return (
     <div className="fixed inset-x-0 top-6 z-50 flex justify-center px-4">
-      <div className={`max-w-xl w-full rounded-3xl border px-5 py-4 text-sm font-medium backdrop-blur ${style}`}>
+      <div className={`max-w-xl w-full rounded-3xl border px-5 py-4 text-sm font-medium backdrop-blur ${toastStyles[toast.type] || toastStyles.info}`}>
         <div className="flex items-start justify-between gap-4">
           <span>{toast.message}</span>
           <button
@@ -21,6 +22,6 @@ export function Toast({ toast, onClose }) {
       </div>
     </div>
   );
-}
+};
 
-export default Toast;
+window.MusicBee.components.Toast = Toast;

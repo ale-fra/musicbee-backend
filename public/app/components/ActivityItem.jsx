@@ -1,4 +1,9 @@
-export function ActivityItem({ item, formatRelative }) {
+window.MusicBee = window.MusicBee || {};
+window.MusicBee.components = window.MusicBee.components || {};
+
+const { formatRelative } = window.MusicBee.utils;
+
+const ActivityItem = ({ item }) => {
   const icon = item.action === 'play' ? '🎧' : '📡';
   const badgeClass = item.type === 'unknown'
     ? 'bg-amber-500/15 text-amber-200 border border-amber-400/40'
@@ -20,6 +25,6 @@ export function ActivityItem({ item, formatRelative }) {
       </span>
     </li>
   );
-}
+};
 
-export default ActivityItem;
+window.MusicBee.components.ActivityItem = ActivityItem;

@@ -1,29 +1,107 @@
 {
   "cards": {
-    "96DE9A41": {
+    "36DE9A41": {
       "type": "track",
-      "title": "carlita gabby's dollhouse",
-      "source": "/media/carlita-gabbys-dollhouse.mp3",
-      "createdAt": "2025-09-22T22:10:31.248Z",
-      "updatedAt": "2025-09-23T13:25:02.474Z",
+      "title": "Wheels on the Bus",
+      "source": "/media/wheels-on-the-bus.mp3",
+      "createdAt": "2025-10-09T14:49:04.162Z",
+      "updatedAt": "2025-10-09T18:28:22.833Z",
       "usage": {
-        "scanCount": 25,
-        "playCount": 8,
-        "lastScannedAt": "2025-09-23T13:25:02.474Z",
-        "lastPlayedAt": "2025-09-23T08:31:38.182Z"
+        "scanCount": 9,
+        "playCount": 9,
+        "lastScannedAt": "2025-10-09T18:28:22.243Z",
+        "lastPlayedAt": "2025-10-09T18:28:22.833Z"
+      }
+    },
+    "06DE9A41": {
+      "type": "track",
+      "title": "i tre porcellini",
+      "source": "/media/i-tre-porcellini.mp3",
+      "createdAt": "2025-10-09T14:50:06.547Z",
+      "updatedAt": "2025-10-09T18:39:01.896Z",
+      "usage": {
+        "scanCount": 13,
+        "playCount": 13,
+        "lastScannedAt": "2025-10-09T18:39:01.229Z",
+        "lastPlayedAt": "2025-10-09T18:39:01.896Z"
+      }
+    },
+    "26C9A141": {
+      "type": "track",
+      "title": "La pecora nel bosco",
+      "source": "/media/la-pecora-nel-bosco.mp3",
+      "createdAt": "2025-10-09T14:50:59.657Z",
+      "updatedAt": "2025-10-09T18:29:11.867Z",
+      "usage": {
+        "scanCount": 18,
+        "playCount": 18,
+        "lastScannedAt": "2025-10-09T18:29:09.347Z",
+        "lastPlayedAt": "2025-10-09T18:29:11.867Z"
+      }
+    },
+    "56C9A141": {
+      "type": "track",
+      "title": "i due liocorni",
+      "source": "/media/i-due-liocorni.mp3",
+      "createdAt": "2025-10-09T14:52:00.245Z",
+      "updatedAt": "2025-10-09T18:28:33.196Z",
+      "usage": {
+        "scanCount": 9,
+        "playCount": 9,
+        "lastScannedAt": "2025-10-09T18:28:32.682Z",
+        "lastPlayedAt": "2025-10-09T18:28:33.196Z"
+      }
+    },
+    "A62FA241": {
+      "type": "track",
+      "title": "Fra Martino Campanaro",
+      "source": "/media/fra-martino-campanaro.mp3",
+      "createdAt": "2025-10-09T14:53:00.162Z",
+      "updatedAt": "2025-10-09T18:39:14.734Z",
+      "usage": {
+        "scanCount": 33,
+        "playCount": 32,
+        "lastScannedAt": "2025-10-09T18:39:14.023Z",
+        "lastPlayedAt": "2025-10-09T18:39:14.734Z"
       }
     },
     "D6DF9A41": {
       "type": "track",
-      "title": "test song",
-      "source": "/media/test-song.mp3",
-      "createdAt": "2025-09-23T08:32:09.687Z",
-      "updatedAt": "2025-09-23T13:11:18.224Z",
+      "title": "Five Little Ducks",
+      "source": "/media/five-little-ducks.mp3",
+      "createdAt": "2025-10-09T14:53:44.242Z",
+      "updatedAt": "2025-10-09T18:23:16.446Z",
       "usage": {
-        "scanCount": 3,
-        "playCount": 1,
-        "lastScannedAt": "2025-09-23T13:11:18.224Z",
-        "lastPlayedAt": "2025-09-23T08:32:18.393Z"
+        "scanCount": 4,
+        "playCount": 4,
+        "lastScannedAt": "2025-10-09T18:23:15.854Z",
+        "lastPlayedAt": "2025-10-09T18:23:16.446Z"
+      }
+    },
+    "D62FA241": {
+      "type": "track",
+      "title": "Il Coccodrillo come fa",
+      "source": "/media/il-coccodrillo-come-fa.mp3",
+      "createdAt": "2025-10-09T14:54:24.351Z",
+      "updatedAt": "2025-10-09T18:38:54.990Z",
+      "usage": {
+        "scanCount": 12,
+        "playCount": 12,
+        "lastScannedAt": "2025-10-09T18:38:53.270Z",
+        "lastPlayedAt": "2025-10-09T18:38:54.990Z"
+      }
+    },
+    "0630A241": {
+      "type": "track",
+      "title": "Baby Shark",
+      "source": "/media/baby-shark.mp3",
+      "createdAt": "2025-10-09T14:55:16.441Z",
+      "updatedAt": "2025-10-09T18:23:00.665Z",
+      "usage": {
+        "scanCount": 5,
+        "playCount": 5,
+        "lastScannedAt": "2025-10-09T18:23:00.081Z",
+        "lastPlayedAt": "2025-10-09T18:23:00.665Z"
       }
     }
   },

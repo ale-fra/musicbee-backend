@@ -1,25 +1,33 @@
-const {
-  useState: useReactState,
-  useEffect: useReactEffect,
-  useCallback: useReactCallback
-} = React;
+window.MusicBee = window.MusicBee || {};
+window.MusicBee.hooks = window.MusicBee.hooks || {};
 
-export function useToast(autoDismissMs = 5000) {
-  const [toast, setToast] = useReactState(null);
+const { useState, useEffect, useCallback } = React;
+const DEFAULT_TIMEOUT = 5000;
 
-  useReactEffect(() => {
+const normalizeToast = (value) => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    return { type: 'info', message: value };
+  }
+  return value;
+};
+
+const useToast = () => {
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
     if (!toast) return undefined;
-    const timeout = setTimeout(() => setToast(null), autoDismissMs);
+    const timeout = setTimeout(() => setToast(null), toast.duration || DEFAULT_TIMEOUT);
     return () => clearTimeout(timeout);
-  }, [toast, autoDismissMs]);
+  }, [toast]);
 
-  const showToast = useReactCallback((nextToast) => {
-    setToast(nextToast);
+  const showToast = useCallback((nextToast) => {
+    setToast(normalizeToast(nextToast));
   }, []);
 
-  const hideToast = useReactCallback(() => {
-    setToast(null);
-  }, []);
+  const hideToast = useCallback(() => setToast(null), []);
 
   return { toast, showToast, hideToast };
-}
+};
+
+window.MusicBee.hooks.useToast = useToast;

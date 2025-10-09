@@ -1,79 +1,95 @@
-import { API_BASE as API_BASE_URL } from '../config.js';
+window.MusicBee = window.MusicBee || {};
+window.MusicBee.services = window.MusicBee.services || {};
 
-const parseJson = async (response) => {
+const { API_BASE } = window.MusicBee.constants;
+
+const parseJSON = async (response) => {
   const text = await response.text();
+  if (!text) return {};
   try {
-    return text ? JSON.parse(text) : {};
+    return JSON.parse(text);
   } catch (error) {
-    throw new Error('Risposta non valida dal server');
+    console.warn('[api] Unable to parse JSON response', error);
+    return {};
   }
 };
 
-const ensureOk = (response, data, fallbackMessage) => {
-  if (!response.ok || (data && data.ok === false)) {
-    const message = data?.message || fallbackMessage || `Errore ${response.status}`;
+const request = async (path, options = {}) => {
+  const response = await fetch(`${API_BASE}${path}`, options);
+  const data = await parseJSON(response);
+  if (!response.ok) {
+    const message = data?.message || `Errore ${response.status}`;
     throw new Error(message);
   }
+  return data;
 };
 
-export const fetchCardsConfig = async () => {
-  const response = await fetch(`${API_BASE_URL}/config`);
-  const data = await parseJson(response);
-  ensureOk(response, data, 'Impossibile caricare le carte');
-  if (!data?.config?.cards) {
-    throw new Error('Configurazione carte non disponibile');
+const fetchCardsConfig = async () => {
+  const data = await request('/config');
+  if (!data.ok || !data.config || !data.config.cards) {
+    throw new Error(data.message || 'Configurazioni carte non disponibili');
   }
   return data.config.cards;
 };
 
-export const fetchCardStatistics = async () => {
-  const response = await fetch(`${API_BASE_URL}/cards/stats`);
-  const data = await parseJson(response);
-  ensureOk(response, data, 'Statistiche non disponibili');
-  if (!data?.statistics) {
-    throw new Error('Statistiche non disponibili');
+const fetchCardsStatistics = async () => {
+  const data = await request('/cards/stats');
+  if (!data.ok || !data.statistics) {
+    throw new Error(data.message || 'Statistiche non disponibili');
   }
-  return {
-    statistics: data.statistics,
-    activity: data.statistics.recentActivity || []
-  };
+  return data.statistics;
 };
 
-export const fetchPlayerStatus = async () => {
-  const response = await fetch(`${API_BASE_URL}/player/status`);
-  const data = await parseJson(response);
-  ensureOk(response, data, 'Stato player non disponibile');
+const fetchPlayerStatus = async () => {
+  const data = await request('/player/status');
+  if (!data.ok) {
+    throw new Error(data.message || 'Stato player non disponibile');
+  }
   return data.status || {};
 };
 
-export const playCardById = async (cardId) => {
-  const response = await fetch(`${API_BASE_URL}/cards/${encodeURIComponent(cardId)}/play`, {
+const playCard = async (cardId) => {
+  const data = await request(`/cards/${encodeURIComponent(cardId)}/play`, {
     method: 'POST'
   });
-  const data = await parseJson(response);
-  ensureOk(response, data, 'Errore durante la riproduzione');
-  return data.played || {};
-};
-
-export const deleteCardById = async (cardId) => {
-  const response = await fetch(`${API_BASE_URL}/cards/${encodeURIComponent(cardId)}`, {
-    method: 'DELETE'
-  });
-  const data = await parseJson(response);
-  ensureOk(response, data, "Errore durante l'eliminazione");
+  if (!data.ok) {
+    throw new Error(data.message || 'Errore durante la riproduzione');
+  }
   return data;
 };
 
-export const uploadCardMedia = async ({ cardId, title, file }) => {
+const deleteCard = async (cardId) => {
+  const data = await request(`/cards/${encodeURIComponent(cardId)}`, {
+    method: 'DELETE'
+  });
+  if (!data.ok) {
+    throw new Error(data.message || "Errore durante l'eliminazione");
+  }
+  return data;
+};
+
+const uploadCard = async ({ cardId, title, file }) => {
   const formData = new FormData();
   formData.append('title', title);
   formData.append('audio', file);
 
-  const response = await fetch(`${API_BASE_URL}/cards/${encodeURIComponent(cardId)}/upload`, {
+  const data = await request(`/cards/${encodeURIComponent(cardId)}/upload`, {
     method: 'POST',
     body: formData
   });
-  const data = await parseJson(response);
-  ensureOk(response, data, 'Errore durante la configurazione della carta');
+
+  if (!data.ok) {
+    throw new Error(data.message || 'Errore durante la configurazione della carta');
+  }
+
   return data;
 };
+
+Object.assign(window.MusicBee.services, {
+  fetchCardsConfig,
+  fetchCardsStatistics,
+  fetchPlayerStatus,
+  playCard,
+  deleteCard,
+  uploadCard
+});
