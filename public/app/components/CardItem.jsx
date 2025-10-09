@@ -1,4 +1,4 @@
-import { formatNumber as formatNumberCompact } from '../utils/format.js';
+import { formatNumberCompact } from '../utils/format.js';
 
 export function CardItem({ card, onPlay, onDelete, onAssign, formatRelative }) {
   const usage = card.usage || {};
