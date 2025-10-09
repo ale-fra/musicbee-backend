@@ -1,4 +1,4 @@
 {
-  "version": "1.2.3",
-  "firmware_url": "/firmware/builds/musicbee-1.2.3.bin"
+  "version": "1.0.0 ",
+  "firmware_url": "http://192.168.68.70:8080/firmware/builds/firmware.bin"
 }
